@@ -3,14 +3,14 @@
   <img src="https://i.ibb.co/Z6rkt1k/tanjiro-fire.gif" width="100%" alt="Tanjiro Flame Sword">
 </p>
 
-<h1 align="center">🗡️ Felpidex | Caçador de Código</h1>
+<h1 align="center">🗡️ Felpidex | Code Hunter </h1>
 <p align="center"><i>"Respiração da Programação, Primeira Forma: Hello World!"</i></p>
 
 ---
 
 ## 💫 Sobre mim
 - 👨‍💻 Estudante de **Ciência da Computação**  
-- 🎮 Apaixonado por **Games e Animes**  
+- 🎮 Apaixonado por **Games, Animes**  e **Impressão 3D**
 - 🛠️ Atualmente aprendendo **C, C# e Desenvolvimento de Jogos**  
 - 📍 Capixaba, Brasil  
 

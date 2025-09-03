@@ -3,7 +3,9 @@
   <img src="https://i.ibb.co/Z6rkt1k/tanjiro-fire.gif" width="100%" alt="Tanjiro Flame Sword">
 </p>
 
-<h1 align="center">🗡️ Felpidex | Code Hunter </h1>
+<<p align="center">
+  <img src="src/gyomei.gif" width="100%" alt="Gyomei Chains">
+</p>
 <p align="center"><i>"Respiração da Programação, Primeira Forma: Hello World!"</i></p>
 
 ---

@@ -1,4 +1,3 @@
-<!-- Banner -->
 <p align="center">
   <img src="https://i.ibb.co/Z6rkt1k/tanjiro-fire.gif" width="100%" alt="Tanjiro Flame Sword">
 </p>

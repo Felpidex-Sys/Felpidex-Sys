@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1f2339" />
+  <meta name="description" content="Uma história jogável em pixel art sobre Luiz e Camily: fé, amizade, coragem e um encontro na fila da pizza." />
+  <title>Entre Notas e Girassóis 🌻 — Uma história de Luiz & Camily</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div class="brand"><span class="sunflower" aria-hidden="true">✿</span><div><span class="eyebrow">UMA HISTÓRIA JOGÁVEL</span><h1>Entre Notas <em>&</em> Girassóis</h1></div></div>
+      <div class="header-tools">
+        <button class="utility" id="soundToggle" type="button" aria-label="Ativar ou desativar música">♫ Música: desligada</button>
+        <button class="utility" id="journalToggle" type="button" aria-label="Abrir diário">▤ Diário</button>
+      </div>
+    </header>
+
+    <section class="play-area" aria-label="Jogo de aventura">
+      <div class="main-column">
+        <div class="game-topline"><span id="chapterLabel">PRÓLOGO • UMA VIDA EM SILÊNCIO</span><span id="locationLabel">QUARTO DE LUIZ</span></div>
+        <div class="game-frame" id="gameFrame">
+          <canvas id="game" width="960" height="540" role="img" aria-label="Cenário de aventura em pixel art com Luiz, personagens e locais para explorar"></canvas>
+          <div class="overlay intro" id="introScreen">
+            <div class="intro-panel">
+              <div class="intro-mark">♪ <span>♥</span> 🌻</div>
+              <p class="intro-eyebrow">UM PEQUENO JOGO SOBRE UM GRANDE ENCONTRO</p>
+              <h2>Algumas histórias<br/>começam <em>sem fazer barulho.</em></h2>
+              <p>Luiz nunca tinha namorado. Camily estava tentando recomeçar. Entre cultos, conversas tímidas e uma fila de pizza, dois caminhos vão se cruzar.</p>
+              <div class="intro-buttons"><button id="newGame" class="btn primary">♡ Começar a história</button><button id="continueGame" class="btn secondary hidden">Continuar aventura</button></div>
+              <span class="smallprint">Arte pixelada original • escolhas e 3 finais • progresso salvo no navegador</span>
+            </div>
+          </div>
+          <div class="dialog-layer hidden" id="dialogLayer" aria-live="polite">
+            <div class="dialog-box">
+              <div class="dialog-meta"><span id="speakerName">Narrador</span><span id="dialogHint">ESCOLHA SUA RESPOSTA</span></div>
+              <p id="dialogText"></p>
+              <div class="choice-list" id="dialogChoices"></div>
+            </div>
+          </div>
+          <div class="puzzle-layer hidden" id="puzzleLayer" aria-live="polite">
+            <section class="puzzle-card" role="dialog" aria-modal="true" aria-labelledby="puzzleTitle">
+              <div class="puzzle-kicker" id="puzzleKicker">DESAFIO</div>
+              <h2 id="puzzleTitle">Puzzle</h2>
+              <p id="puzzleDescription"></p>
+              <div id="puzzleContent"></div>
+              <button class="puzzle-close" id="puzzleClose">Voltar ao cenário</button>
+            </section>
+          </div>
+          <div class="overlay ending hidden" id="endingScreen">
+            <div class="ending-panel"><div class="end-sunflower">🌻</div><span class="eyebrow" id="endingEyebrow">FIM DO CAPÍTULO</span><h2 id="endingTitle"></h2><p id="endingDescription"></p><div class="ending-summary" id="endingSummary"></div><button id="playAgain" class="btn primary">↻ Jogar outra vez</button></div>
+          </div>
+          <div class="toast hidden" id="toast" role="status"></div>
+          <div class="action-hint hidden" id="actionHint"><kbd>E</kbd> <span id="actionName">Conversar</span></div>
+        </div>
+        <div class="controls-bar">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> mover</span>
+          <span><kbd>E</kbd> ou <kbd>Espaço</kbd> interagir</span>
+          <span><kbd>Esc</kbd> fechar puzzle</span>
+        </div>
+        <div class="mobile-controls" aria-label="Controles de toque">
+          <div class="dpad"><button data-dir="up" aria-label="Cima">▲</button><div><button data-dir="left" aria-label="Esquerda">◀</button><button data-dir="down" aria-label="Baixo">▼</button><button data-dir="right" aria-label="Direita">▶</button></div></div>
+          <button class="interact-button" id="touchInteract">✦ Interagir</button>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <section class="side-card chapter-card"><span class="side-label">CAPÍTULO ATUAL</span><div class="chapter-num" id="chapterNumber">00</div><h2 id="chapterName">Antes de tudo</h2><p id="chapterDescription">Às vezes o primeiro passo é simplesmente sair de casa.</p><div class="chapter-progress" id="chapterProgress"><i class="active"></i><i></i><i></i><i></i><i></i></div></section>
+        <section class="side-card affection-card"><span class="side-label">LAÇOS QUE FLORESCEM</span><div class="meter-head"><span>♡ Interesse de Camily</span><strong id="interestValue">12%</strong></div><div class="meter pink"><div id="interestBar"></div></div><div class="meter-head second"><span>✧ Confiança</span><strong id="trustValue">18%</strong></div><div class="meter gold"><div id="trustBar"></div></div><p class="meter-footnote">Os números representam a evolução narrativa — as decisões e os sentimentos de Camily também importam.</p></section>
+        <section class="side-card objective-card"><span class="side-label">✦ SUA PRÓXIMA MISSÃO</span><p id="objective">Encontre sua Bíblia no quarto.</p><span class="tip" id="tip">Aproxime-se dos objetos brilhantes e pressione E.</span></section>
+        <section class="side-card quote-card"><span class="side-label">DO DIÁRIO DE LUIZ</span><blockquote id="diaryQuote">“Talvez a vida ainda tenha surpresas guardadas para mim.”</blockquote><span class="hand-drawn">✿ ♫ ♡</span></section>
+      </aside>
+    </section>
+    <footer>Feito com carinho. Uma história inspirada em pessoas reais, com caminhos ficcionais. 🌻</footer>
+  </main>
+
+  <dialog id="journalDialog" class="journal-dialog"><div class="journal-inner"><button id="journalClose" class="journal-close" aria-label="Fechar diário">×</button><span class="eyebrow">PÁGINAS DE UMA HISTÓRIA</span><h2>O diário de Luiz</h2><div id="journalEntries"></div><p class="journal-note">As páginas vão surgindo enquanto você vive esta história.</p></div></dialog>
+  <script src="game.js" defer></script>
+</body>
+</html>

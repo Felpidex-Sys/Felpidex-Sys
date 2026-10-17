@@ -3,3 +3,103 @@
 @media(max-width:1050px){.play-area{grid-template-columns:minmax(0,1fr) 255px;gap:12px}.side-card{padding:15px}.intro-panel{max-width:490px;padding:16px}.intro-panel p:not(.intro-eyebrow){line-height:1.4}.game-frame{border-width:4px}.shell{padding:18px 15px}}
 @media(max-width:790px){.play-area{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quote-card{display:none}.masthead{align-items:flex-start}.brand h1{font-size:22px}.sunflower{width:42px;height:42px;font-size:32px}.header-tools{flex-direction:column}.utility{padding:9px;font-size:11px}.controls-bar{margin-top:15px}.mobile-controls{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:13px 6px 0}.dpad{text-align:center;display:flex;flex-direction:column;gap:5px;align-items:center}.dpad div{display:flex;gap:5px}.dpad button,.interact-button{touch-action:none;border:2px solid #988795;border-bottom:4px solid #777084;border-radius:9px;background:#424960;color:#ffecd3;min-width:49px;min-height:40px;font-weight:bold}.interact-button{padding:10px 28px;border-color:#e2b3a8;background:#664b64}.intro{padding:7px}.intro-panel{max-width:92%;padding:12px}.intro-panel h2{font-size:clamp(18px,4.8vw,30px)}.intro-panel p:not(.intro-eyebrow){font-size:clamp(10px,2.1vw,13px)}.intro-mark{font-size:15px}.intro-eyebrow{font-size:8px}.smallprint{font-size:8px}.btn{padding:9px 12px;font-size:12px}.dialog-box{padding:10px}.dialog-box p{margin:6px 0;font-size:12px}.choice-button{padding:7px;font-size:11px}.puzzle-card{padding:12px}.puzzle-card p{font-size:12px}.controls-bar{font-size:10px}.controls-bar span:last-child{display:none}}
 @media(max-width:420px){.shell{padding:12px 8px}.brand{gap:7px}.brand h1{font-size:18px}.brand .eyebrow{font-size:8px}.utility{font-size:10px;padding:7px}.header-tools{gap:4px}.game-topline{font-size:8px}.sidebar{grid-template-columns:1fr}.side-card{padding:13px}.intro-panel h2{font-size:19px}.intro-panel p:not(.intro-eyebrow){font-size:10px;line-height:1.26}.intro-buttons{margin:9px}.smallprint{display:none}.dialog-meta #speakerName{font-size:11px}.dialog-meta #dialogHint{font-size:8px}}
+
+
+/* Mobile-first additions: câmera retrato 3:4, HUD compacto e controles de polegar. */
+.mobile-status {display:none}
+.mobile-actions {display:flex;flex-direction:column;align-items:center;gap:8px}
+.mobile-tap-tip {font-size:11px;color:#d9c2c6;text-align:center;max-width:150px}
+.interact-button span {display:block;font-size:13px}
+canvas {touch-action:none}
+button { -webkit-tap-highlight-color:transparent }
+@media(hover:none) and (pointer:coarse){
+  .mobile-controls {display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 10px 4px}
+  .dpad button {width:64px;height:60px;min-width:64px;min-height:60px;touch-action:none;user-select:none;-webkit-user-select:none;font-size:20px;border-radius:14px}
+  .dpad {gap:2px}
+  .dpad div {gap:4px}
+  .interact-button {min-width:104px;min-height:96px;border-radius:50%;font-size:29px;box-shadow:0 7px 0 #45394d;touch-action:manipulation}
+  .dpad button:active,.interact-button:active{filter:brightness(1.2);transform:translateY(2px)}
+}
+@media(max-width:700px) and (orientation:portrait){
+  html,body{max-width:100%;overflow-x:hidden}
+  body {background:linear-gradient(#29263d,#171b2b)}
+  .shell {padding:calc(8px + env(safe-area-inset-top)) 10px calc(16px + env(safe-area-inset-bottom));max-width:540px;margin-inline:auto}
+  .masthead{margin-bottom:13px;align-items:center;gap:8px}
+  .brand h1{font-size:clamp(17px,4.6vw,24px);line-height:1.1;letter-spacing:-.6px}
+  .brand .eyebrow{font-size:8px;letter-spacing:1px}
+  .sunflower{flex:0 0 36px;width:36px;height:36px;font-size:26px;border-radius:11px}
+  .header-tools {flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+  .utility{padding:9px;font-size:11px;white-space:nowrap}
+  .play-area{display:block}
+  .game-topline{padding:0 1px 7px;font-size:9px;gap:5px}
+  .game-topline span:last-child{max-width:42%;text-align:right}
+  .game-frame{aspect-ratio:3/4;border:3px solid #61576e;border-bottom-width:5px;border-radius:13px;box-shadow:0 9px 0 #151626,0 16px 36px #080a1388}
+  .mobile-status {display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;margin:0 0 11px;padding:9px 10px 7px;background:#2d3148;border:1px solid #595369;border-radius:12px}
+  .mobile-stat-title{display:flex;justify-content:space-between;gap:3px;align-items:center;color:#f0dfe0;font-size:10px;font-weight:bold}
+  .mobile-stat-title strong{color:#eeb3c1}
+  .mobile-meter{height:7px;background:#151c2c;border-radius:7px;margin-top:6px;overflow:hidden}
+  .mobile-meter i{display:block;height:100%;width:0;background:#efaabb;border-radius:7px;transition:width .4s}
+  .mobile-meter.trust i{background:#efd496}
+  .mobile-goal{grid-column:1/-1;font-size:12px;line-height:1.35;margin:2px 0 0;color:#f6dbb2}
+  .sidebar{display:none}
+  .controls-bar{display:none}
+  .mobile-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 8px 0}
+  .dpad button{height:58px;width:60px;min-width:60px;min-height:58px;font-size:19px;border-radius:13px;touch-action:none;user-select:none;-webkit-user-select:none}
+  .dpad div{gap:4px}
+  .mobile-actions{margin-left:auto}
+  .interact-button{width:106px;height:96px;min-height:96px;padding:8px;box-shadow:0 5px 0 #422f48;font-size:24px;border-radius:22px}
+  .interact-button span{font-size:12px}
+  .mobile-tap-tip{font-size:10px}
+  .intro{padding:7px;overflow:auto;align-items:center}
+  .intro-panel{max-width:100%;padding:clamp(10px,4vw,22px);max-height:100%;overflow:auto}
+  .intro-panel h2{font-size:clamp(23px,5.8vw,31px);line-height:1.12;margin:9px 0}
+  .intro-panel p:not(.intro-eyebrow){font-size:clamp(12px,3.3vw,15px);line-height:1.46}
+  .intro-eyebrow{font-size:10px;letter-spacing:1.1px}
+  .intro-mark{font-size:21px;letter-spacing:6px}
+  .intro-buttons{margin:12px 0;gap:7px}
+  .btn {font-size:14px;padding:12px 16px;min-height:46px}
+  .smallprint{display:block;font-size:9px;line-height:1.35}
+  .dialog-layer{padding:8px;align-items:flex-end}
+  .dialog-box{padding:12px 13px 14px;max-height:89%;border-radius:12px}
+  .dialog-meta #speakerName{font-size:15px}
+  .dialog-meta #dialogHint{font-size:9px;letter-spacing:.5px}
+  .dialog-box p{font-size:14px;line-height:1.45;margin:9px 0 13px}
+  .choice-list{gap:8px}
+  .choice-button{font-size:13px;line-height:1.35;min-height:46px;padding:10px 12px}
+  .puzzle-layer{padding:8px}
+  .puzzle-card{padding:13px;max-height:98%;width:100%}
+  .puzzle-card h2{font-size:23px}
+  .puzzle-card p{font-size:13px;line-height:1.5}
+  .music-keys button{min-width:61px;min-height:60px}
+  .pizza-choices button{min-height:55px;font-size:13px}
+  .ending-panel{padding:19px;max-height:96%}
+  .ending-panel h2{font-size:24px}
+  .ending-panel p{font-size:13px;line-height:1.5}
+  .action-hint{bottom:10px;max-width:90%;white-space:normal;text-align:center;font-size:11px;padding:6px 11px}
+  .action-hint kbd{display:none}
+  footer{font-size:10px;margin-top:21px}
+}
+@media(max-width:360px) and (orientation:portrait){
+  .shell{padding-inline:7px}
+  .brand h1{font-size:17px}
+  .brand .eyebrow{font-size:7px}
+  .dpad button{min-width:50px;width:50px;min-height:52px;height:52px}
+  .interact-button{width:91px;min-width:91px;height:88px;min-height:88px}
+  .mobile-goal{font-size:11px}
+  .mobile-stat-title{font-size:9px}
+}
+@media(max-width:700px) and (orientation:landscape){
+  .shell{padding:8px max(10px,env(safe-area-inset-right)) 12px max(10px,env(safe-area-inset-left))}
+  .masthead{margin-bottom:8px}
+  .header-tools{flex-direction:row}
+  .play-area{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .game-frame{max-height:min(70vh,490px);width:min(100%,calc(min(70vh,490px) * 16 / 9));margin-inline:auto}
+  .controls-bar{display:none}
+  .mobile-controls{display:flex;max-width:650px;margin:auto;gap:10px;padding:5px}
+  .dpad{flex-direction:row}
+  .dpad button{width:48px;height:45px;min-height:45px;min-width:48px}
+  .interact-button{width:98px;min-height:55px;height:55px;padding:5px;border-radius:13px}
+  .mobile-tap-tip{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}

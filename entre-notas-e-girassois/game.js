@@ -19,7 +19,24 @@
 
   const freshState = () => ({version:1,chapter:0,interest:12,trust:18,position:{x:460,y:423},flags:{},notes:[],ending:null});
   let state = freshState(), mode = 'intro';
-  let keys = {}, touchMove = null, elapsed = 0, toastTimer = null, frames = 0;
+  let keys = {}, touchMove = null, tapGoal = null, elapsed = 0, toastTimer = null, frames = 0;
+  // A câmera recorta a cena no formato retrato sem distorcer a pixel art.
+  const isPortraitGame = () => window.matchMedia('(max-width: 700px) and (orientation: portrait)').matches;
+  const getCamera = () => {
+    if (!isPortraitGame()) return {x:0, width:W, scale:1};
+    const visibleWidth = 405; // 540px de altura do mundo / proporção 3:4
+    return {x:clamp(state.position.x-visibleWidth/2,0,W-visibleWidth),width:visibleWidth,scale:720/H};
+  };
+  function configureCanvas() {
+    const portrait=isPortraitGame();
+    canvas.width=portrait?540:W;
+    canvas.height=portrait?720:H;
+    ctx.imageSmoothingEnabled=false;
+    tapGoal=null;
+  }
+  configureCanvas();
+  window.addEventListener('resize',configureCanvas);
+  window.addEventListener('orientationchange',configureCanvas);
   let musicOn = false, ac = null, tuneTimer = null, tuneStep = 0;
   const noteHz = {C:261.63,D:293.66,E:329.63,F:349.23,G:392.00,A:440,B:493.88};
   const melody = ['E','G','A',null,'G','E','D',null,'C','E','G','E','D',null,'C',null,
@@ -70,9 +87,12 @@
     $('chapterNumber').textContent = String(state.chapter).padStart(2,'0');
     $('chapterName').textContent = inf.name; $('chapterDescription').textContent = inf.text;
     $('interestValue').textContent = state.interest+'%'; $('interestBar').style.width = state.interest+'%';
+    $('mobileInterest').textContent=state.interest+'%'; $('mobileInterestBar').style.width=state.interest+'%';
     $('trustValue').textContent = state.trust+'%'; $('trustBar').style.width = state.trust+'%';
+    $('mobileTrust').textContent=state.trust+'%'; $('mobileTrustBar').style.width=state.trust+'%';
     $('diaryQuote').textContent = inf.quote;
     $('objective').textContent = getObjective(); $('tip').textContent = inf.tip;
+    $('mobileObjective').textContent='✦ '+getObjective();
     const prog=$('chapterProgress');prog.replaceChildren();
     for(let i=0;i<5;i++){let x=document.createElement('i');if(i<=state.chapter)x.className='active';prog.appendChild(x);}
   }
@@ -99,12 +119,12 @@
     if(!state.notes.some(n=>n.title===title)){state.notes.push({title,paragraph});persist();}
   }
   function setChapter(index) {
-    state.chapter=index;
+    state.chapter=index; tapGoal=null;
     state.position= index===0 ? {x:460,y:423} : index===1 ? {x:275,y:420} : index===2 ? {x:430,y:416} : index===3 ? {x:455,y:421} : {x:465,y:433};
     mode='play';hideAll();updateHUD();persist();littleChime();
   }
   function start(reset) {
-    state = reset ? freshState() : (loadSave()||freshState());
+    state = reset ? freshState() : (loadSave()||freshState()); tapGoal=null;
     hideAll();mode='play';updateHUD();setMusic(true);
     if(state.ending && state.endingData){showEnding(state.endingData);return;}
     if(state.chapter===0 && !state.flags.introSeen){
@@ -524,6 +544,10 @@
     }
   }
   function render(){
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const camera=getCamera();
+    ctx.setTransform(camera.scale,0,0,camera.scale,-camera.x*camera.scale,0);
     if(state.chapter===0)drawRoom(false);
     if(state.chapter===1||state.chapter===2)drawChurch();
     if(state.chapter===3){drawRoom(true);
@@ -546,12 +570,18 @@
       if(t.type==='object')drawObjectMarker(t,!!focus&&focus.id===t.id);
       else if(focus&&focus.id===t.id)renderLabel(t.name,t.x,t.y,true);
     });
+    // Marca a posição escolhida com um toque no cenário.
+    if(tapGoal && mode==='play'){
+      circle(tapGoal.x,tapGoal.y,9+Math.sin(elapsed*7)*2,'#ffe8b384');
+      circle(tapGoal.x,tapGoal.y,4,'#f7ca99');
+    }
     // readable name label over player, and landmark marker
     text('LUIZ',state.position.x,state.position.y-77,13,'#ffefd4');
     if(state.chapter===1||state.chapter===2){text('PALCO',65,302,12,'#f7dfae');text('✝',742,153,35,'#f7d59a');}
     const hint=$('actionHint');
     if(focus&&mode==='play'){hint.classList.remove('hidden');$('actionName').textContent=''+(focus.type==='npc'?'Conversar: ':'Interagir: ')+focus.name;}
     else hint.classList.add('hidden');
+    $('touchInteract').querySelector('span').textContent=focus?(focus.type==='npc'?'Conversar':'Examinar'):'Interagir';
   }
   function tick(dt){
     elapsed+=dt;frames++;
@@ -559,6 +589,16 @@
       let dx=Number(!!(keys.ArrowRight||keys.d))-Number(!!(keys.ArrowLeft||keys.a));
       let dy=Number(!!(keys.ArrowDown||keys.s))-Number(!!(keys.ArrowUp||keys.w));
       if(touchMove){dx=touchMove.x;dy=touchMove.y;}
+      if(dx||dy)tapGoal=null; // Controle manual tem prioridade sobre tocar para andar.
+      else if(tapGoal){
+        const vx=tapGoal.x-state.position.x,vy=tapGoal.y-state.position.y;
+        const distance=Math.hypot(vx,vy);
+        if(distance<Math.max(8,185*dt+2)){
+          state.position.x=tapGoal.x;state.position.y=tapGoal.y;
+          const action=tapGoal.action;tapGoal=null;
+          if(action)interact();
+        }else {dx=vx/distance;dy=vy/distance;}
+      }
       const size=Math.hypot(dx,dy)||1;
       state.position.x=clamp(state.position.x+dx/size*185*dt,42,915);
       state.position.y=clamp(state.position.y+dy/size*185*dt,243,489);
@@ -579,10 +619,11 @@
     }
   });
   window.addEventListener('keyup',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;keys[k]=false;});
-  window.addEventListener('blur',()=>{keys={};touchMove=null;});
+  window.addEventListener('blur',()=>{keys={};touchMove=null;tapGoal=null;});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){keys={};touchMove=null;tapGoal=null;persist();}});
   const vectors={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
   document.querySelectorAll('[data-dir]').forEach(b=>{
-    const start=e=>{e.preventDefault();if(b.setPointerCapture)b.setPointerCapture(e.pointerId);touchMove=vectors[b.dataset.dir];};
+    const start=e=>{e.preventDefault();if(b.setPointerCapture)b.setPointerCapture(e.pointerId);tapGoal=null;touchMove=vectors[b.dataset.dir];};
     const stop=e=>{e.preventDefault();touchMove=null;};
     b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointercancel',stop);b.addEventListener('lostpointercapture',()=>{touchMove=null;});
   });
@@ -590,8 +631,17 @@
   // Click/tap on an in-world NPC can interact when close enough, without bypassing exploration.
   canvas.addEventListener('pointerdown',e=>{
     if(mode!=='play')return;
-    const rect=canvas.getBoundingClientRect();const x=(e.clientX-rect.left)*W/rect.width,y=(e.clientY-rect.top)*H/rect.height;
-    const t=nearestTarget();if(t&&Math.hypot(x-t.x,y-t.y)<55)interact();
+    e.preventDefault();
+    const rect=canvas.getBoundingClientRect();
+    const camera=getCamera();
+    const x=clamp(camera.x+(e.clientX-rect.left)*camera.width/rect.width,42,915);
+    const y=clamp((e.clientY-rect.top)*H/rect.height,243,489);
+    const clicked=allTargets().find(t=>Math.hypot(x-t.x,(y-t.y)*.85)<65);
+    if(clicked){
+      const goal={x:clamp(clicked.x,42,915),y:clamp(clicked.y+26,243,489),action:true};
+      if(Math.hypot(state.position.x-clicked.x,(state.position.y-clicked.y)*.9)<73)interact();
+      else tapGoal=goal;
+    }else tapGoal={x,y,action:false};
   });
   $('journalToggle').addEventListener('click',()=>{
     const d=$('journalDialog'),entries=$('journalEntries');entries.replaceChildren();
@@ -600,6 +650,23 @@
     d.showModal();
   });
   $('journalClose').addEventListener('click',()=>$('journalDialog').close());
+  // Instalação opcional: aparece apenas quando navegador oferece um convite real de PWA.
+  let deferredInstall=null;
+  window.addEventListener('beforeinstallprompt', e=>{
+    e.preventDefault();deferredInstall=e;
+    $('installApp').classList.remove('hidden');
+  });
+  $('installApp').addEventListener('click', async()=>{
+    if(!deferredInstall)return;
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall=null;
+    $('installApp').classList.add('hidden');
+  });
+  window.addEventListener('appinstalled',()=>{$('installApp').classList.add('hidden');deferredInstall=null;});
+  if('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && (location.protocol==='https:'||location.hostname==='localhost')){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  }
   // Programmatic hooks for local automated playtesting (no gameplay dependency).
   window.__gameTest={getState:()=>JSON.parse(JSON.stringify(state)),setPosition:(x,y)=>{state.position={x,y};},interact:()=>interact(),start:()=>start(true)};
   updateHUD();

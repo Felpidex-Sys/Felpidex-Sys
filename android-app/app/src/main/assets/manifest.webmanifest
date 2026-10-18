@@ -1,0 +1,16 @@
+{
+  "name":"Entre Notas e Girassóis — A História de Luiz e Camily",
+  "short_name":"Notas & Girassóis",
+  "description":"Um jogo de romance e aventura pixelada, com escolhas, puzzles e três finais.",
+  "id":"./",
+  "start_url":"./index.html",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"any",
+  "background_color":"#191e2b",
+  "theme_color":"#29263d",
+  "icons":[
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

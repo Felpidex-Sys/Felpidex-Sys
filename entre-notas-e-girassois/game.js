@@ -6,7 +6,7 @@
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   ctx.imageSmoothingEnabled = false;
-  const SAVE_KEY = 'entre-notas-girassois-save-v1';
+  const SAVE_KEY = 'entre-notas-girassois-save-v1'; // Mantém compatibilidade com os saves anteriores.
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
   const rnd = (seed) => { let x = Math.sin(seed * 57.73 + 9.19) * 43758.5453; return x - Math.floor(x); };
   const chapterInfo = [
@@ -17,7 +17,22 @@
     {name:'Na fila da pizza', label:'CAPÍTULO 4 • A NOITE DO CONVITE', loc:'PIZZARIA', text:'Luiz convidou Camily para sair com a avó dele, Milene e Pedro. Uma conversa inesperada aguardava.', objective:'Ajude a lembrar os pedidos no balcão da pizzaria.', tip:'Você pode conversar com a avó, Milene e Pedro antes de pedir.', quote:'“Engraçado: no meio de uma fila, encontrei a coragem que faltava.”'}
   ];
 
-  const freshState = () => ({version:1,chapter:0,interest:12,trust:18,position:{x:460,y:423},flags:{},notes:[],ending:null});
+  const freshState = () => ({version:1,chapter:0,interest:12,trust:18,position:{x:454,y:385},flags:{},notes:[],ending:null,
+    area:'world',selectedCharacter:'luiz',day:1,coins:35,crops:Array(6).fill(null),inventory:{},purchases:[],prayedDays:{},mistakes:0});
+  const seedTypes = [
+    {id:'tomate',name:'Tomate',icon:'🍅',days:2,price:4,sale:11,color:'#d66e66'},
+    {id:'milho',name:'Milho',icon:'🌽',days:3,price:7,sale:19,color:'#eac36e'},
+    {id:'girassol',name:'Girassol',icon:'🌻',days:4,price:10,sale:29,color:'#edbb66'}
+  ];
+  const churchItems=[{id:'biblias',name:'Bíblias para os jovens',price:25,icon:'📖'},
+    {id:'microfone',name:'Microfone para o louvor',price:65,icon:'🎤'},
+    {id:'cadeiras',name:'Cadeiras novas',price:90,icon:'🪑'},
+    {id:'teclado',name:'Teclado da igreja',price:160,icon:'🎹'}];
+  const weekdays=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+  const cast=[['luiz','Luiz','🎸'],['camily','Camily','🎤'],['milene','Milene','🌸'],
+    ['pedro','Pedro','🎮'],['matheus','Matheus','🏀'],['kevin','Kevin','👓'],
+    ['gabriel','Gabriel','✨'],['rebecka','Rebecka','🎹'],['miguel','Miguel','🥁']];
+  const plotCoords=[{x:170,y:335},{x:330,y:335},{x:490,y:335},{x:170,y:460},{x:330,y:460},{x:490,y:460}];
   let state = freshState(), mode = 'intro';
   let keys = {}, touchMove = null, tapGoal = null, elapsed = 0, toastTimer = null, frames = 0;
   // A câmera recorta a cena no formato retrato sem distorcer a pixel art.
@@ -79,25 +94,46 @@
   $('soundToggle').addEventListener('click',()=>setMusic(!musicOn));
 
   function persist() { try {localStorage.setItem(SAVE_KEY, JSON.stringify(state));} catch (_){} }
-  function loadSave() {try {const v=JSON.parse(localStorage.getItem(SAVE_KEY));if(v?.version===1&&Number.isInteger(v.chapter)&&v.chapter>=0&&v.chapter<=4&&v.position&&v.flags) return v;}catch(_){} return null;}
-  function hideAll() { $('introScreen').classList.add('hidden'); $('dialogLayer').classList.add('hidden'); $('puzzleLayer').classList.add('hidden'); $('endingScreen').classList.add('hidden'); }
+  function loadSave() {
+    try {
+      const v=JSON.parse(localStorage.getItem(SAVE_KEY));
+      if(v?.version===1&&Number.isInteger(v.chapter)&&v.chapter>=0&&v.chapter<=4&&v.position&&v.flags){
+        // Saves antigos continuam na história; novos iniciam no mapa.
+        return {...freshState(),...v,area:v.area||'story',crops:Array.isArray(v.crops)&&v.crops.length===6?v.crops:Array(6).fill(null),
+          inventory:v.inventory||{},purchases:v.purchases||[],prayedDays:v.prayedDays||{}};
+      }
+    } catch(_){} return null;
+  }
+  function hideAll() { $('characterLayer').classList.add('hidden'); $('introScreen').classList.add('hidden'); $('dialogLayer').classList.add('hidden'); $('puzzleLayer').classList.add('hidden'); $('endingScreen').classList.add('hidden'); }
   function updateHUD() {
     const inf = chapterInfo[state.chapter];
-    $('chapterLabel').textContent = inf.label; $('locationLabel').textContent = inf.loc;
-    $('chapterNumber').textContent = String(state.chapter).padStart(2,'0');
-    $('chapterName').textContent = inf.name; $('chapterDescription').textContent = inf.text;
+    const worldLabels={world:['MAPA DA CIDADE • VILA VELHA','ESCOLHA UM BAIRRO'],
+      gloria:['EXPLORAÇÃO • BAIRRO DA GLÓRIA','GLÓRIA, VILA VELHA'],farm:['FAZENDA • SÍTIO DO JÂNIO','PONTA DA FRUTA'],
+      story:[inf.label,inf.loc]};
+    $('chapterLabel').textContent=worldLabels[state.area||'story'][0];
+    $('locationLabel').textContent=worldLabels[state.area||'story'][1];
+    $('chapterNumber').textContent = state.area==='story'?String(state.chapter).padStart(2,'0'):'↗';
+    $('chapterName').textContent = state.area==='story'?inf.name:state.area==='world'?'Vila Velha em miniatura':state.area==='gloria'?'Pelas ruas da Glória':'Sítio do Jânio'; $('chapterDescription').textContent = state.area==='story'?inf.text:state.area==='world'?'Explore bairros como se fossem fases conectadas.':'Explore à vontade, cuide da fazenda e avance na história.';
     $('interestValue').textContent = state.interest+'%'; $('interestBar').style.width = state.interest+'%';
     $('mobileInterest').textContent=state.interest+'%'; $('mobileInterestBar').style.width=state.interest+'%';
     $('trustValue').textContent = state.trust+'%'; $('trustBar').style.width = state.trust+'%';
     $('mobileTrust').textContent=state.trust+'%'; $('mobileTrustBar').style.width=state.trust+'%';
-    $('diaryQuote').textContent = inf.quote;
-    $('objective').textContent = getObjective(); $('tip').textContent = inf.tip;
+    $('diaryQuote').textContent = state.area==='story'?inf.quote:'“O que a gente semeia com cuidado pode florescer com o tempo.”';
+    $('objective').textContent = getObjective(); $('tip').textContent = state.area==='story'?inf.tip:'Ande usando as setas ou toque perto dos locais. Pressione E para interagir.';
     $('mobileObjective').textContent='✦ '+getObjective();
     const prog=$('chapterProgress');prog.replaceChildren();
     for(let i=0;i<5;i++){let x=document.createElement('i');if(i<=state.chapter)x.className='active';prog.appendChild(x);}
+    $('dayBadge').textContent=`📅 Dia ${state.day} • ${weekdays[(state.day-1)%7]}`;
+    $('coinsBadge').textContent=`🪙 ${state.coins} moedas`;
+    $('harvestBadge').textContent=`🌱 ${state.crops.filter(Boolean).length} cultivos`;
+    const saved=Object.entries(state.inventory).filter(([,v])=>v>0).map(([k,v])=>`${seedTypes.find(x=>x.id===k)?.icon||'🌾'} ${v}`).join(' · ');
+    $('farmSidebar').textContent=`Cultivos: ${state.crops.filter(Boolean).length}/6 · Colheita: ${saved||'vazia'} · Itens para igreja: ${state.purchases.length}/4 · Vacilos: ${state.mistakes}`;
   }
   function getObjective() {
-    if(state.ending)return 'Você concluiu este capítulo da história!';
+    if(state.area==='world')return 'Escolha Glória ou Ponta da Fruta; os outros bairros virão depois.';
+    if(state.area==='gloria')return 'Saia de casa e caminhe até a igreja pela Glória. Conheça os moradores!';
+    if(state.area==='farm')return 'Plante, passe dias, colha e venda no Sítio do Jânio.';
+    if(state.ending)return 'A história chegou a um final, mas Vila Velha segue aberta!';
     if(state.chapter===0)return 'Aproxime-se da Bíblia na escrivaninha.';
     if(state.chapter===1)return 'Toque as notas do baixo para o culto começar.';
     if(state.chapter===2)return 'Puxe assunto com Camily, sentada ao lado de Luiz.';
@@ -108,7 +144,7 @@
     state.interest = clamp(state.interest+interest,0,100);
     state.trust = clamp(state.trust+trust,0,100);
     if(interest>0||trust>0) toast(`${interest>0?'♡ +'+interest+' interesse ':''}${trust>0?'✧ +'+trust+' confiança':''}`);
-    else if(interest<0||trust<0) toast('Às vezes uma conversa precisa de mais cuidado.');
+    else if(interest<0||trust<0) { registerMistake();toast('Vacilo! As plantações perderam 2 dias de progresso.'); }
     updateHUD();persist();
   }
   function toast(text) {
@@ -119,28 +155,46 @@
     if(!state.notes.some(n=>n.title===title)){state.notes.push({title,paragraph});persist();}
   }
   function setChapter(index) {
-    state.chapter=index; tapGoal=null;
+    state.storyMaxChapter=Math.max(state.storyMaxChapter||0,index);state.chapter=index;state.area='story';tapGoal=null;
     state.position= index===0 ? {x:460,y:423} : index===1 ? {x:275,y:420} : index===2 ? {x:430,y:416} : index===3 ? {x:455,y:421} : {x:465,y:433};
     mode='play';hideAll();updateHUD();persist();littleChime();
   }
+  function showCharacters(){
+    hideAll();mode='character';$('characterLayer').classList.remove('hidden');
+    const list=$('characterCards');list.replaceChildren();
+    cast.forEach(([id,name,emoji])=>{
+      const b=document.createElement('button');b.type='button';b.className='character-option';b.disabled=id!=='luiz';
+      const face=document.createElement('span');face.className='avatar-mini';
+      face.style.setProperty('--skin',outfits[id].skin);face.style.setProperty('--hair',outfits[id].hair);face.style.setProperty('--shirt',outfits[id].shirt);
+      const hair=document.createElement('i');hair.className='avatar-hair';
+      const eyes=document.createElement('i');eyes.className='avatar-eyes';
+      const shirt=document.createElement('i');shirt.className='avatar-shirt';
+      face.append(hair,eyes,shirt);
+      const title=document.createElement('strong');title.textContent=name;
+      const sub=document.createElement('small');sub.textContent=id==='luiz'?'JOGAR AGORA':'EM BREVE 🔒';
+      b.append(face,title,sub);
+      if(id==='luiz')b.onclick=()=>{state.selectedCharacter=id;enterArea('world');say('Narrador','Vila Velha está esperando! Comece pelas ruas da Glória ou vá até o Sítio do Jânio, em Ponta da Fruta. O mundo é seu para explorar.');};
+      list.appendChild(b);
+    });
+  }
   function start(reset) {
     state = reset ? freshState() : (loadSave()||freshState()); tapGoal=null;
-    hideAll();mode='play';updateHUD();setMusic(true);
-    if(state.ending && state.endingData){showEnding(state.endingData);return;}
-    if(state.chapter===0 && !state.flags.introSeen){
-      state.flags.introSeen=true;persist();
-      say('Narrador','Luiz, 24 anos, nunca tinha namorado. Era cristão, tocava baixo na igreja e ultimamente vivia no automático. Ele ainda não sabia, mas a vida estava prestes a mudar.',[
-        ['Talvez hoje seja diferente...',()=>{}]
-      ]);
-    } else if(state.chapter===3 && !state.flags.phoneStory){phoneWelcome();}
+    hideAll();mode='play';setMusic(true);updateHUD();
+    if(reset){showCharacters();return;}
+    if(state.area==='story'&&state.chapter===0&&!state.flags.introSeen){
+      state.flags.introSeen=true;persist();say('Narrador','Luiz, 24 anos, seguia os dias no automático. Mas uma nova história começava.',[['Continuar',()=>{}]]);
+    } else if(state.area==='story'&&state.chapter===3&&!state.flags.phoneStory){phoneWelcome();}
   }
+  $('characterBack').addEventListener('click',()=>{hideAll();mode='intro';$('introScreen').classList.remove('hidden');});
+  $('charactersToggle').addEventListener('click',showCharacters);
+  $('exploreAfterEnding').addEventListener('click',()=>enterArea('world'));
   $('newGame').addEventListener('click',()=>start(true));
   $('continueGame').addEventListener('click',()=>start(false));
   $('playAgain').addEventListener('click',()=>start(true));
   if(loadSave())$('continueGame').classList.remove('hidden');
 
   function say(speaker,line,choices=[['Continuar',()=>{}]]) {
-    mode='dialog'; $('dialogLayer').classList.remove('hidden'); $('puzzleLayer').classList.add('hidden');
+    mode='dialog'; $('characterLayer').classList.add('hidden'); $('dialogLayer').classList.remove('hidden'); $('puzzleLayer').classList.add('hidden');
     $('speakerName').textContent=speaker;$('dialogText').textContent=line;
     $('dialogHint').textContent=choices.length>1?'ESCOLHA SUA RESPOSTA':'CONTINUE A HISTÓRIA';
     const list=$('dialogChoices');list.replaceChildren();
@@ -288,7 +342,7 @@
   function showEnding(end){
     mode='end';$('endingScreen').classList.remove('hidden');$('endingEyebrow').textContent=end.eyebrow;
     $('endingTitle').textContent=end.title;$('endingDescription').textContent=end.desc;
-    $('endingSummary').textContent=`♡ Interesse ${state.interest}%   ·   ✧ Confiança ${state.trust}%   ·   3 puzzles / 5 capítulos`;
+    $('endingSummary').textContent=`♡ Interesse ${state.interest}% · ✧ Confiança ${state.trust}% · 🪙 ${state.coins} moedas · ${state.purchases.length} melhorias`;
     updateHUD();
   }
   function finish(choice,int,tru) {
@@ -323,9 +377,144 @@
     say('Camily',`${end.line} ${end.answer}`,[['Ver o final da história 🌻',()=>showEnding(end)]]);
   }
 
+  // Vila Velha: bairros conectados, cultivo por turnos de um dia e escolhas com consequências.
+  function enterArea(area){
+    state.area=area;tapGoal=null;touchMove=null;keys={};mode='play';hideAll();
+    state.position=area==='world'?{x:310,y:405}:area==='gloria'?{x:750,y:405}:area==='farm'?{x:735,y:434}:{x:460,y:423};
+    updateHUD();persist();littleChime();
+  }
+  function showMap(){
+    puzzle({kicker:'🗺 MAPA DE VILA VELHA',title:'Escolha o próximo destino',
+      description:'Os bairros funcionam como fases conectadas. A Glória e Ponta da Fruta estão disponíveis; os outros aparecem como futuras expansões.',render:root=>{
+        const opts=document.createElement('div');opts.className='choice-list';
+        const nodes=[['🌇 Glória • casa, igreja e jovens','gloria'],['🌻 Ponta da Fruta • Sítio do Jânio','farm'],
+          ['📖 Continuar a história','story'],['🧭 Ver mapa geral','world']];
+        nodes.forEach(([name,id])=>{const b=document.createElement('button');b.className='choice-button';b.textContent=name;
+          b.onclick=()=>{closePuzzle();if(id==='story')setChapter(state.storyMaxChapter??state.chapter);else enterArea(id);};opts.appendChild(b);});
+        ['🔒 Praia da Costa (em breve)','🔒 Itapuã (em breve)','🔒 Centro (em breve)','🔒 Barra do Jucu (em breve)'].forEach(name=>{
+          const b=document.createElement('button');b.className='choice-button';b.textContent=name;b.disabled=true;b.style.opacity='.48';opts.appendChild(b);
+        });root.append(opts);
+      }});
+  }
+  $('mapToggle').addEventListener('click',showMap);
+  $('worldNav').addEventListener('click',showMap);
+  $('farmShortcut').addEventListener('click',showMap);
+  function passDay(){
+    if(mode!=='play')return toast('Conclua a conversa atual antes de passar o dia.');
+    state.day+=1;state.crops.forEach(c=>{if(c)c.progress+=1;});
+    updateHUD();persist();toast(`☀ Dia ${state.day}: ${weekdays[(state.day-1)%7]}. As plantas cresceram +1 dia!`);
+  }
+  $('nextDay').addEventListener('click',passDay);
+  function registerMistake(){
+    state.mistakes+=1;
+    state.crops.forEach(c=>{if(c)c.progress=Math.max(0,c.progress-2);});
+    persist();updateHUD();
+  }
+  function pray(){
+    const dayOfWeek=(state.day-1)%7;
+    if(![2,5,6].includes(dayOfWeek)){
+      toast('Hoje não é quarta, sábado nem domingo. Volte no próximo culto!');return false;
+    }
+    if(state.prayedDays[state.day]){toast('O bônus de oração deste culto já foi recebido.');return false;}
+    state.prayedDays[state.day]=true;
+    state.crops.forEach(c=>{if(c)c.progress+=2;});
+    diary('A força de cada culto','No jogo, cada culto representa um dia de renovação. A oração aparece como um bônus simbólico no crescimento das sementes.');
+    updateHUD();persist();littleChime();toast('🙏 Dia de culto! Oração: +2 dias de crescimento em todas as plantas!');return true;
+  }
+  function enterChurch(){
+    const bon=pray();
+    const current=state.storyMaxChapter??state.chapter;
+    setChapter(current===0?1:current===3||current===4?2:current);
+    say('Narrador',`Você chegou à igreja na Glória. ${bon?'Hoje é dia de culto: a oração renovou as plantações do sítio!':'Os jovens já estão se preparando e você pode continuar sua história.'}`,
+      [['Voltar a explorar a igreja',()=>{}],['Abrir a loja de melhorias da igreja',()=>churchShop()]]);
+  }
+  function talkMilene(){
+    say('Milene','Luiz, vi você andando pela Glória! E aí, como estão as conversas com a Camily?',[
+      ['Quero conhecê-la melhor, mas sem apressar nada.',()=>{changeStats(3,5);say('Milene','É isso! Respeita o tempo dela. O carinho cresce com paciência.');}],
+      ['Ela precisa me dar uma chance logo.',()=>{changeStats(-6,-7);say('Milene','Isso não é justo com ela. Você pode fazer diferente numa próxima conversa.');}],
+      ['Vamos falar do Pedro... ele anda curioso sobre você.',()=>say('Milene','O Pedro? Ah, ele é uma figura! 😅')]
+    ]);
+  }
+  function talkKevin(){
+    say('Kevin','Vai na igreja depois? Posso ajudar a levar umas cadeiras! 😁',[
+      ['Bora ajudar juntos. Todo mundo merece um lugar.',()=>{changeStats(0,4);say('Kevin','Fechou! A gente faz mais quando ajuda um ao outro.');}],
+      ['Que nada, deixa tudo pra você.',()=>{changeStats(0,-5);say('Kevin','Poxa... dividir o esforço seria melhor, né?');}]
+    ]);
+  }
+  function talkJanio(){
+    say('Jânio','Seja bem-vindo ao sítio! O tempo faz parte da colheita. O que a gente planta cresce com constância, não com pressa.',[
+      ['Me ensina a cuidar de um canteiro?',()=>say('Jânio','Plante uma semente, avance os dias e volte quando ela amadurecer. Você pode vender na banca e ajudar a igreja.')],
+      ['Vou vender tudo sem cuidar de nada!',()=>{changeStats(0,-4);say('Jânio','Aqui tudo precisa de atenção, inclusive a forma como tratamos as pessoas.');}],
+      ['Obrigado, Jânio! Vou tentar.',()=>{toast('Jânio lhe entrega boas-vindas!');}]
+    ]);
+  }
+  function plant(index,id){
+    const seed=seedTypes.find(x=>x.id===id);
+    if(!seed||state.crops[index])return false;
+    if(state.coins<seed.price){toast(`Você precisa de ${seed.price} moedas para plantar ${seed.name}.`);return false;}
+    state.coins-=seed.price;state.crops[index]={type:seed.id,progress:0};
+    updateHUD();persist();littleChime();toast(`${seed.icon} ${seed.name} plantado no canteiro ${index+1}!`);return true;
+  }
+  function plotAction(index){
+    const crop=state.crops[index];
+    if(crop){const type=seedTypes.find(x=>x.id===crop.type);
+      if(crop.progress>=type.days){
+        state.inventory[type.id]=(state.inventory[type.id]||0)+1;
+        state.crops[index]=null;persist();updateHUD();littleChime();
+        say('Luiz',`Que maravilha! Colhi ${type.icon} ${type.name}. Agora posso vender na banca do sítio!`);
+      }else say('Canteiro',`${type.icon} ${type.name} • crescimento ${crop.progress}/${type.days} dias. O próximo dia avança +1; dias de culto dão bônus +2.`,[['Continuar',()=>{}]]);
+      return;
+    }
+    puzzle({kicker:`🌱 PLANTIO • CANTEIRO ${index+1}`,title:'O que vamos semear?',description:'Cada semente leva dias de jogo para crescer. Cultos aceleram o crescimento; vacilos fazem perder 2 dias de progresso.',render:root=>{
+      const list=document.createElement('div');list.className='choice-list';
+      seedTypes.forEach(seed=>{const b=document.createElement('button');b.className='choice-button';b.disabled=state.coins<seed.price;
+        b.textContent=`${seed.icon} ${seed.name} — semente ${seed.price} moedas • ${seed.days} dias • venda ${seed.sale} moedas`;
+        b.onclick=()=>{if(plant(index,seed.id))closePuzzle();};list.appendChild(b);});root.append(list);
+    }});
+  }
+  function sellHarvest(){
+    let total=0,details=[];
+    seedTypes.forEach(seed=>{const n=state.inventory[seed.id]||0;if(n){total+=n*seed.sale;details.push(`${n}× ${seed.name}`);state.inventory[seed.id]=0;}});
+    if(!total)return say('Banca do sítio','Você ainda não tem colheitas para vender. Plante, deixe crescer e colha quando estiver pronta!');
+    state.coins+=total;persist();updateHUD();littleChime();
+    say('Banca do sítio',`Você vendeu ${details.join(', ')} por ${total} moedas! Use o dinheiro para comprar melhorias para a igreja na Glória.`);
+  }
+  function churchShop(){
+    puzzle({kicker:'🛍 SOLIDARIEDADE • IGREJA',title:'Melhorias para a igreja',
+      description:`Saldo atual: ${state.coins} moedas. Com as vendas do sítio, você pode comprar itens para a comunidade. São melhorias somente dentro do jogo.`,render:root=>{
+      const list=document.createElement('div');list.className='choice-list';
+      churchItems.forEach(item=>{
+        const bought=state.purchases.includes(item.id);
+        const b=document.createElement('button');b.className='choice-button';b.disabled=bought||state.coins<item.price;
+        b.textContent=`${item.icon} ${item.name} • ${bought?'ADQUIRIDO ✔':item.price+' moedas'}`;
+        b.onclick=()=>{if(state.coins<item.price||state.purchases.includes(item.id))return;
+          state.coins-=item.price;state.purchases.push(item.id);
+          diary('Um presente à igreja',`Com o trabalho no Sítio do Jânio, Luiz conseguiu um presente para a igreja: ${item.name}.`);
+          persist();updateHUD();closePuzzle();littleChime();say('Narrador',`Você comprou ${item.name} para a igreja! Uma pequena colheita se tornou algo bom para todos. 🌻`);
+        };list.appendChild(b);
+      });root.appendChild(list);
+    }});
+  }
+
   // Personagens, objetos e conversas opcionais.
   function target(id,name,x,y,action,type='npc',look='default') {return {id,name,x,y,action,type,look};}
   function allTargets() {
+    if(state.area==='world')return [
+      target('gloria','Glória',240,380,()=>enterArea('gloria'),'object'),
+      target('farmarea','Ponta da Fruta',766,380,()=>enterArea('farm'),'object')];
+    if(state.area==='gloria')return [
+      target('home','Casa de Luiz',774,388,()=>{state.area='story';setChapter(state.chapter===3?3:0);say('Narrador','No quarto, Luiz guarda lembranças e sonhos. É aqui que sua história começou.',[['Continuar',()=>{}]]);},'object'),
+      target('gloriaChurch','Igreja',225,358,()=>enterChurch(),'object'),
+      target('gloriaMilene','Milene',456,398,()=>talkMilene(),'npc','milene'),
+      target('gloriaKevin','Kevin',590,425,()=>talkKevin(),'npc','kevin'),
+      target('gloriaShop','Loja para a igreja',365,346,()=>churchShop(),'object')
+    ];
+    if(state.area==='farm')return [
+      ...plotCoords.map((o,i)=>target('plot-'+i,'Canteiro '+(i+1),o.x,o.y,()=>plotAction(i),'object')),
+      target('janio','Jânio',790,405,()=>talkJanio(),'npc','pedro'),
+      target('farmMarket','Banca de vendas',737,310,()=>sellHarvest(),'object'),
+      target('farmGate','Voltar à cidade',870,470,()=>enterArea('world'),'object')
+    ];
     const c=state.chapter;
     if(c===0)return [
       target('bible','Bíblia',238,344,()=>say('Luiz','“Confia no Senhor de todo o teu coração...” Talvez eu não saiba o que quero da vida ainda, mas posso continuar caminhando.',[
@@ -543,19 +732,101 @@
       const c=i%3?'#ffeab415':'#f4bed322';drawRect(x,y,4,4,c);
     }
   }
+  function pixelHouse(x,y,roof,wall,caption){
+    drawRect(x-65,y-114,130,114,wall);drawRect(x-76,y-130,152,22,roof);
+    drawRect(x-28,y-82,56,44,'#8fb4b5');drawRect(x-4,y-82,5,44,'#e9d8b4');
+    drawRect(x-64,y-117,128,6,'#fffae329');drawRect(x+27,y-45,28,45,'#715b67');
+    drawRect(x+32,y-26,5,5,'#eaca8e');
+    text(caption,x,y-139,14,'#fff1cf');
+  }
+  function drawCityWorld(){
+    drawRect(0,0,W,H,'#83b6a4');
+    drawRect(0,0,W,122,'#93ccd9');
+    for(let i=0;i<18;i++){const x=i*59;circle(x+35,72+(i%3)*10,17,'#d4eff0');}
+    for(let i=0;i<18;i++){const x=i*66;circle(x,180+Math.sin(i*3)*32,23,'#567a63');circle(x+22,188+Math.sin(i*3)*25,20,'#60856d');}
+    drawRect(0,245,960,295,'#80af77');
+    // Caminhos pontilhados entre os bairros, como no mapa de seleção de fases.
+    ctx.strokeStyle='#d9c59d';ctx.lineWidth=37;ctx.beginPath();
+    ctx.moveTo(200,382);ctx.bezierCurveTo(350,320,330,490,490,408);
+    ctx.bezierCurveTo(640,298,670,476,780,372);ctx.stroke();
+    ctx.strokeStyle='#fff2bf';ctx.lineWidth=5;ctx.setLineDash([12,18]);ctx.stroke();ctx.setLineDash([]);
+    for(let i=0;i<11;i++){
+      const x=20+i*85,y=293+(i%2)*195;pixelFlower(x,y,'#edce6f',1.25);
+    }
+    circle(238,358,73,'#3b7779');circle(238,358,63,'#f8d49d');
+    circle(764,355,73,'#547b58');circle(764,355,63,'#f8d49d');
+    text('🏠',238,362,47);text('🌻',764,362,45);
+    text('GLÓRIA',238,438,23,'#fff6dc');text('SÍTIO DO JÂNIO',764,439,21,'#fff5da');
+    text('VILA VELHA',480,73,34,'#f8f3cd');text('ESCOLHA UMA FASE',480,102,15,'#305066');
+    text('🔒 ITAPUÃ',430,250,13,'#f1eacb');text('🔒 PRAIA DA COSTA',618,244,13,'#f1eacb');
+    text('🔒 CENTRO',340,499,14,'#f2ebd0');text('🔒 BARRA DO JUCU',658,501,14,'#f2ebd0');
+    star(239,271,3,'#fff4d4');star(765,270,3,'#fff4d4');
+  }
+  function drawGloria(){
+    // Representação ESQUEMÁTICA das ruas reais: Maranguape fica a oeste de Dom Pedro II.
+    // Nenhum número residencial nem posição exata de moradia é codificado neste mapa público.
+    drawRect(0,0,W,H,'#96b79e');
+    for(let j=0;j<5;j++)for(let i=0;i<13;i++){
+      const x=i*87+7,y=90+j*92;
+      drawRect(x,y,70,65,(i+j)%3===0?'#d5bcaa':(i+j)%3===1?'#d6a99e':'#d9cfae');
+      drawRect(x,y,70,8,'#946f7a');
+      drawRect(x+12,y+14,15,19,'#8daca9');drawRect(x+43,y+14,13,19,'#8daca9');
+    }
+    drawRect(0,318,W,106,'#a7a6a4');drawRect(0,358,W,3,'#f6dfad');
+    drawRect(212,80,70,440,'#a8a9a1');drawRect(680,80,70,440,'#a8a9a1');
+    for(let i=0;i<16;i++){drawRect(i*66+8,365,29,4,'#ece0ca');}
+    for(let i=0;i<8;i++){drawRect(246,i*57+86,4,20,'#eadbc4');drawRect(714,i*57+86,4,20,'#eadbc4');}
+    // Os edifícios acima são abstrações de quarteirões; as ruas seguem orientação aproximada.
+    pixelHouse(225,321,'#7e576f','#ddbfad','IGREJA');
+    drawRect(209,258,33,31,'#edf3c1');text('✝',225,286,29,'#c4a36f');
+    pixelHouse(774,365,'#775f85','#ebceae','CASA DE LUIZ');
+    drawRect(336,235,107,69,'#d8c2a6');drawRect(331,220,120,17,'#83586f');
+    text('LOJA SOLIDÁRIA',394,211,13,'#fff2d8');
+    drawRect(0,0,W,79,'#364d65');text('BAIRRO DA GLÓRIA',480,43,28,'#fff0d5');
+    text('R. MARANGUAPE',244,157,13,'#fff5cf');text('R. DOM PEDRO II',716,158,13,'#fff5cf');
+    text('RUA DE LIGAÇÃO (TRAJETO SIMPLIFICADO)',465,474,14,'#fff9d4');
+    for(let i=0;i<13;i++)pixelFlower(52+i*72,504,i%2?'#ecaac1':'#f5c46e',.55);
+  }
+  function drawFarm(){
+    drawRect(0,0,W,H,'#8fb684');
+    drawRect(0,0,W,173,'#a4ced0');
+    drawRect(0,152,W,389,'#89a66e');
+    for(let i=0;i<19;i++){const x=i*58;circle(x,190,31,'#4f7554');circle(x+20,160,32,'#638857');}
+    drawRect(35,245,575,280,'#b98e63');
+    for(let i=0;i<6;i++){
+      const o=plotCoords[i],crop=state.crops[i];
+      drawRect(o.x-65,o.y-51,126,90,'#654e3e');drawRect(o.x-58,o.y-44,112,76,'#805e47');
+      for(let j=0;j<3;j++)drawRect(o.x-42,o.y-30+j*22,80,7,'#a47854');
+      if(crop){const type=seedTypes.find(x=>x.id===crop.type),ratio=clamp(crop.progress/type.days,0,1);
+        if(ratio<.4){text('🌱',o.x,o.y+4,31);}else if(ratio<1){text('🌿',o.x,o.y+4,34);}
+        else {text(type.icon,o.x,o.y+7,38);star(o.x+37,o.y-23,3,'#ffefaf');}
+        text(`${Math.min(crop.progress,type.days)}/${type.days} dias`,o.x,o.y+51,13,'#fff2cc');
+      }else text('＋ PLANTAR',o.x,o.y+7,14,'#fff1d1');
+    }
+    drawRect(652,233,200,73,'#876452');drawRect(642,216,215,26,'#c77862');
+    text('BANCA DE VENDAS',752,205,15,'#fff2c6');text('🍅 🌽 🌻',750,273,23);
+    pixelHouse(857,430,'#886777','#e7caa8','CASA DO SÍTIO');
+    drawRect(0,0,W,79,'#405d69');text('SÍTIO DO JÂNIO • PONTA DA FRUTA',480,44,25,'#fff4d7');
+    text('← CANTEIROS',654,498,15,'#fff5cd');text('ENTRADA ↗',848,508,16,'#f8f2d3');
+    for(let i=0;i<9;i++)pixelFlower(42+i*105,530,'#e8d075',.75);
+  }
+
   function render(){
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const camera=getCamera();
     ctx.setTransform(camera.scale,0,0,camera.scale,-camera.x*camera.scale,0);
-    if(state.chapter===0)drawRoom(false);
-    if(state.chapter===1||state.chapter===2)drawChurch();
-    if(state.chapter===3){drawRoom(true);
+    if(state.area==='world')drawCityWorld();
+    else if(state.area==='gloria')drawGloria();
+    else if(state.area==='farm')drawFarm();
+    else if(state.chapter===0)drawRoom(false);
+    if(state.area==='story'&&(state.chapter===1||state.chapter===2))drawChurch();
+    if(state.area==='story'&&state.chapter===3){drawRoom(true);
       drawRect(668,174,120,234,'#2d3348');drawRect(677,179,101,217,'#b4a2aa');drawRect(680,186,95,201,'#e0d2c5');
       drawRect(683,210,85,33,'#8cbaa9');drawRect(683,262,75,28,'#eebaaa');drawRect(690,300,77,28,'#8cbaa9');
       drawRect(707,364,43,5,'#afa5ae');star(720,190,2,'#f6cf95');
     }
-    if(state.chapter===4)drawPizza();
+    if(state.area==='story'&&state.chapter===4)drawPizza();
     drawAmbience();
     const available=allTargets(), focus=mode==='play'?nearestTarget():null;
     // NPC sprites ordered by depth. Objects like instruments are already rendered in the scene.
@@ -577,7 +848,7 @@
     }
     // readable name label over player, and landmark marker
     text('LUIZ',state.position.x,state.position.y-77,13,'#ffefd4');
-    if(state.chapter===1||state.chapter===2){text('PALCO',65,302,12,'#f7dfae');text('✝',742,153,35,'#f7d59a');}
+    if(state.area==='story'&&(state.chapter===1||state.chapter===2)){text('PALCO',65,302,12,'#f7dfae');text('✝',742,153,35,'#f7d59a');}
     const hint=$('actionHint');
     if(focus&&mode==='play'){hint.classList.remove('hidden');$('actionName').textContent=''+(focus.type==='npc'?'Conversar: ':'Interagir: ')+focus.name;}
     else hint.classList.add('hidden');
@@ -636,7 +907,8 @@
     const camera=getCamera();
     const x=clamp(camera.x+(e.clientX-rect.left)*camera.width/rect.width,42,915);
     const y=clamp((e.clientY-rect.top)*H/rect.height,243,489);
-    const clicked=allTargets().find(t=>Math.hypot(x-t.x,(y-t.y)*.85)<65);
+    const clicked=allTargets().find(t=>Math.hypot(x-t.x,(y-t.y)*.85)<(state.area==='world'?80:65));
+    if(clicked&&state.area==='world'){clicked.action();return;}
     if(clicked){
       const goal={x:clamp(clicked.x,42,915),y:clamp(clicked.y+26,243,489),action:true};
       if(Math.hypot(state.position.x-clicked.x,(state.position.y-clicked.y)*.9)<73)interact();
@@ -668,6 +940,6 @@
     window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   }
   // Programmatic hooks for local automated playtesting (no gameplay dependency).
-  window.__gameTest={getState:()=>JSON.parse(JSON.stringify(state)),setPosition:(x,y)=>{state.position={x,y};},interact:()=>interact(),start:()=>start(true)};
+  window.__gameTest={getState:()=>JSON.parse(JSON.stringify(state)),setPosition:(x,y)=>{state.position={x,y};},interact:()=>interact(),start:()=>start(true),enterArea,passDay,pray,registerMistake,plant:(i,id)=>plant(i,id),plotAction, sellHarvest};
   updateHUD();
 })();

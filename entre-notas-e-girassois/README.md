@@ -1,58 +1,47 @@
-# 🌻 Entre Notas e Girassóis
+# 🌻 Entre Notas & Girassóis — Vila Velha em Miniatura (2.0)
 
-Um minijogo narrativo **original**, em pixel art, inspirado na história de Luiz e Camily. Um jovem de 24 anos, uma igreja, a cadeira ao lado do baixo, uma amizade que começa devagar e uma conversa na fila da pizza.
+Jogo original em pixel art sobre Luiz e Camily, expandido com um **mapa de bairros inspirado em Vila Velha**, progressão da história, escolhas de diálogos, plantio por dia e melhorias para a igreja.
 
-**Agora também é uma versão mobile/PWA para Android e iPhone: pode funcionar no navegador ou como atalho instalado na tela inicial quando publicado em HTTPS.** Continua sem contas, sem bibliotecas externas e sem backend. A arte é desenhada por código em Canvas 2D, e a música é sintetizada pelo Web Audio API — também funciona offline.
+## Como jogar
 
-## ▶️ Como jogar
+Abra `index.html` num navegador (Chrome/Edge) ou utilize o aplicativo Android criado a partir da pasta `android-app` no repositório. Os arquivos web não dependem de bibliotecas externas e também funcionam offline. A música começa depois da interação inicial.
 
-1. Baixe estes arquivos juntos na mesma pasta: `index.html`, `styles.css` e `game.js`.
-2. Dê dois cliques em **`index.html`** e clique em **Começar a história**.
-3. **No celular (modo retrato):** use o direcional de toque ou toque no chão para caminhar. Toque em um personagem/objeto para Luiz se aproximar e interagir automaticamente. O botão **Interagir** funciona quando estiver por perto. **No PC:** use WASD/setas e E/Espaço.
-4. No celular, a câmera acompanha Luiz em um campo de visão ampliado; o interesse, a confiança e o objetivo ficam acima do cenário.
-5. Responda às escolhas nas caixas de diálogo. Aperte **Esc** para fechar um puzzle no PC; no celular use **Voltar ao cenário**.
+- **Novo jogo → personagem:** nove jovens apresentados; **somente Luiz** é jogável nesta fase. Os demais são exibidos bloqueados.
+- **Mapa de Vila Velha:** escolha um local pelo botão **Mapa** / **Bairros** ou visite os pontos do mapa como fases de Super Mario World. Glória e Sítio do Jânio (Ponta da Fruta) estão disponíveis. Praia da Costa, Itapuã, Centro e Barra do Jucu permanecem bloqueados.
+- **Glória:** área caminhável, com casa de Luiz perto da Rua Dom Pedro II e igreja na região da Rua Maranguape. Caminhe entre as duas, converse com Milene e Kevin ou visite a loja solidária.
+- **História:** os cinco capítulos originais permanecem, incluindo baixo, conversas com Camily, WhatsApp e pizzaria, com três finais. Use **Mapa → Continuar a história** para retomar a parte mais avançada.
+- **Fazenda:** escolha um canteiro, compre sementes com moedas do jogo, avance os dias, colha ao amadurecer, venda na banca e compre itens virtuais para a igreja.
+- **Cultos:** quarta, sábado e domingo. A **primeira ida à igreja em cada dia de culto** concede **+2 dias de crescimento** às plantas existentes; bônus limitado a uma vez por data no jogo.
+- **Escolhas/vacilos:** respostas desrespeitosas reduzem interesse/confiança e retiram **dois dias de progresso das plantas** (até no mínimo zero). A data do calendário não retrocede. É uma mecânica simbólica de fantasia, não um julgamento moral de pessoas reais.
+- **Dias:** são turnos simulados, não dias reais do relógio: clique em **☀ Passar dia** para avançar +1. Segunda é o dia inicial.
+- **Controles:** WASD / setas para andar, `E` / espaço para interagir. No celular, use o direcional virtual, o botão **Interagir** ou toque no chão/objeto.
+- **Salvar:** automaticamente no navegador (localStorage). O APK salva em armazenamento separado; limpar dados/desinstalar pode apagar o progresso.
 
-Seu progresso é salvo automaticamente no navegador (`localStorage`). O botão de música liga/desliga a trilha original.
+## Plantio e economia
 
-## ✨ O que já está implementado
+| Semente | Custo | Crescimento | Valor da venda |
+| --- | ---: | ---: | ---: |
+| 🍅 Tomate | 4 | 2 dias | 11 |
+| 🌽 Milho | 7 | 3 dias | 19 |
+| 🌻 Girassol | 10 | 4 dias | 29 |
 
-- 5 capítulos: prólogo, chegada à igreja, conversas, WhatsApp e pizzaria;
-- Cenários originais de pixel art gerados em tempo real;
-- Luiz, Camily, Milene, Pedro, Matheus, Kevin, Gabriel, Rebecka, Miguel e a avó de Luiz;
-- 3 puzzles: notas do baixo, mensagens no WhatsApp e pedidos de pizza;
-- Escolhas de diálogo com consequências, barra de **interesse** e **confiança**;
-- 3 finais diferentes, incluindo romance, tempo para se conhecer e amizade;
-- Música instrumental original gerada no navegador;
-- Diário desbloqueável, salvamento automático, câmera retrato, direcional virtual, tocar para caminhar e botões acessíveis.
+Há 6 canteiros e 35 moedas iniciais. A loja da Glória vende itens para a igreja: Bíblias (25), microfone (65), cadeiras (90), teclado (160). Tudo é economia fictícia interna ao jogo.
 
-## 🎵 Música e arte
+## Sobre o mapa
 
-A trilha é feita com osciladores do próprio navegador (sine/triangle), e nenhum sample ou arte protegida de outros jogos foi utilizado. O estilo é uma homenagem **ao gênero de aventuras acolhedoras em pixel art**, sem copiar Stardew Valley.
+O mapa do bairro foi criado como uma **interpretação simplificada, sem navegação de GPS**, baseada na localização geral dos logradouros Rua Maranguape e Rua Dom Pedro II, no bairro Glória, Vila Velha/ES. O traçado das quadras, a localização dos prédios e o caminho a pé são estilizados; **não são dados cartográficos exatos nem rota para uso real**. Para proteger a privacidade, **o endereço residencial completo e o número do imóvel não foram incluídos no código, arte nem repositório público**. O sítio é uma representação ficcional em Ponta da Fruta, sem localização exata fornecida.
 
-## 🧩 Estrutura
+Fontes de contexto geográfico:
+- Rua Maranguape — https://www.ruacep.com.br/es/vila-velha/gloria/29122180-rua-maranguape/
+- Rua Dom Pedro II — https://guiamapa.com/es/vila-velha/gloria/rua-dom-pedro-ii
+- Mapa municipal de bairros (PMES) — https://observatorio.sesp.es.gov.br/Media/ObservatorioSESP/MAPAS/DIVISAO_ADMINISTRATIVA_PMES_VILA_VELHA.pdf
 
-```text
-entre-notas-e-girassois/
-├── index.html     Interface e telas
-├── styles.css     Estética, diálogos e responsividade
-├── game.js        Motor, arte, história, áudio e salvamento
-└── README.md      Este guia
-```
+## Estrutura
 
-## 🌐 Publicar online
+- `index.html`: interface, cenas, painel de seleção e diálogos
+- `styles.css`: layout desktop e mobile
+- `game.js`: canvas, mapa aberto, personagens, capítulo, plantio, economia e salvamento
+- `sw.js`, `manifest.webmanifest`, ícones: PWA quando hospedado em HTTPS
+- `android-app/`: wrapper Android WebView e workflow GitHub Actions para gerar APK de desenvolvimento
 
-Você pode hospedar este projeto gratuitamente no GitHub Pages, Cloudflare Pages ou Netlify. O site é estático: não precisa de Node, npm ou backend. No GitHub Pages, publique a branch e diretório apropriados após colocar os arquivos na raiz de um repositório dedicado.
-
-## 💛 Sobre a história
-
-Inspirada em fatos reais, mas com algumas falas, desafios, escolhas e finais **ficcionais**. O interesse não substitui consentimento: Camily tem seu próprio tempo e merece ser respeitada independentemente do resultado.
-
-## 📱 Instalação no Android/iPhone
-
-Para instalar como aplicativo, o jogo precisa ser **hospedado em HTTPS** (por exemplo, GitHub Pages). Abra o site no Chrome/Android e escolha **Instalar aplicativo** ou **Adicionar à tela inicial** no menu. No Safari/iPhone, use **Compartilhar > Adicionar à Tela de Início**. O service worker armazena os arquivos para funcionar offline após o primeiro acesso em HTTPS.
-
-O ZIP também abre offline após extrair e abrir `index.html`, mas **não oferece instalação de PWA ao usar `file://`**. Os arquivos `index.html`, `game.js`, `styles.css`, `manifest.webmanifest`, `sw.js` e os ícones devem permanecer na mesma pasta.
-
-### Publicação no GitHub Pages
-
-Os arquivos estão no subdiretório `entre-notas-e-girassois/` da branch `jogo-luiz-camily`. Para publicar pelo GitHub Pages dessa branch, é necessário mover/copiá-los para a raiz da branch (ou para `/docs`) e escolher essa origem em **Settings > Pages**. Nada é publicado automaticamente apenas ao fazer commits.
+Esta é uma obra ficcional baseada na história contada pelo usuário, sem intenções de retratar precisamente pessoas, locais privados ou práticas religiosas reais. 🌻

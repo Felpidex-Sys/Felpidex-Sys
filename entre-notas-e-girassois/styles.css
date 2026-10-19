@@ -103,3 +103,27 @@ button { -webkit-tap-highlight-color:transparent }
   .mobile-tap-tip{display:none}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Expansão: exploração, seleção de personagens, calendário e economia */
+.world-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#292e43;border:2px solid #53516a;border-radius:13px;padding:9px 13px;margin:0 0 11px;color:#f7e1b6}
+.world-resources,.world-buttons{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.world-resources span{background:#393e56;border:1px solid #56536d;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:bold}
+.world-buttons button,.mini-shortcut{border:1px solid #bd9d9a;background:#54475f;color:#fff3dd;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:bold;min-height:36px}
+.world-buttons button:hover,.mini-shortcut:hover{background:#78546b}
+.character-layer{position:absolute;inset:0;z-index:30;display:flex;justify-content:center;align-items:center;background:#191a30ed;padding:14px;overflow:auto}
+.character-layer.hidden{display:none}
+.character-panel{background:#302b45;border:3px solid #cba583;border-radius:18px;box-shadow:0 8px 0 #1c2232,0 18px 40px #0b0c1c9c;max-width:800px;max-height:100%;overflow:auto;padding:20px;width:100%;text-align:center}
+.character-panel h2{font-size:clamp(20px,3vw,31px);margin:8px 0;color:#ffe1b5}.char-note{font-size:13px;color:#e0d3cf;line-height:1.4;margin:9px auto 14px;max-width:540px}
+.character-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:13px}
+.character-option{border:2px solid #61546b;background:linear-gradient(#49455c,#36344e);border-radius:12px;padding:11px 4px;min-height:93px;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:3px;color:#f9e1c7}
+.character-option:not(:disabled){border-color:#edc68e;background:linear-gradient(#806276,#594b66);cursor:pointer}
+.character-option:disabled{opacity:.62;cursor:not-allowed}.character-emoji{font-size:27px}.character-option strong{font-size:12px}.character-option small{font-size:9px;color:#e7cda9}
+.farm-card{background:#383549;padding:12px;border-radius:10px;margin:15px 0}.farm-card p{font-size:12px;line-height:1.5;color:#f3ddbc}.mini-shortcut{width:100%}
+@media(max-width:700px){.world-toolbar{padding:7px;gap:6px}.world-resources{width:100%;justify-content:space-between;gap:4px}.world-resources span{font-size:10px;padding:6px}.world-buttons{width:100%;display:grid;grid-template-columns:1fr 1fr}.world-buttons button{padding:8px;font-size:11px}.character-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.character-panel{padding:12px 9px}.character-option{min-height:79px;padding:6px 2px}.character-emoji{font-size:22px}.character-option strong{font-size:11px}.character-option small{font-size:8px}.char-note{font-size:11px;margin:5px 0 9px}}
+@media(max-width:360px){.world-resources span{font-size:9px;padding:5px}}
+
+.avatar-mini{position:relative;display:block;width:37px;height:45px;border-radius:8px;background:#5a6471;border:2px solid #93829a;image-rendering:pixelated}
+.avatar-mini:before{content:'';position:absolute;top:8px;left:7px;width:19px;height:24px;background:var(--skin);box-shadow:0 -7px 0 var(--hair)}
+.avatar-hair{position:absolute;top:2px;left:7px;background:var(--hair);width:19px;height:12px;box-shadow:4px -2px 0 var(--hair);z-index:1}
+.avatar-eyes{position:absolute;top:18px;left:13px;width:3px;height:3px;background:#3d3342;box-shadow:9px 0 0 #3d3342;z-index:2}
+.avatar-shirt{position:absolute;bottom:0;left:4px;width:27px;height:13px;background:var(--shirt);border-radius:5px 5px 0 0;z-index:2}

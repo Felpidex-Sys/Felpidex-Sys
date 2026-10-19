@@ -3,7 +3,7 @@ android {
     namespace 'br.com.felpidex.entrenotasegirassois'
     compileSdk 35
     defaultConfig {
-        applicationId 'br.com.felpidex.entrenotasegirassois'
+        applicationId 'br.com.felpidex.entrenotasegirassois.v2'
         minSdk 23
         targetSdk 34
         versionCode 2

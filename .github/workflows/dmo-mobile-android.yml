@@ -25,6 +25,13 @@ jobs:
           cd dmo-mobile
           godot --headless --path . --editor --quit 2>&1 | tee /tmp/godot-import.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/godot-import.log; then exit 1; fi
+      - name: Launch scene (smoke test)
+        shell: bash
+        run: |
+          set -o pipefail
+          cd dmo-mobile
+          godot --headless --path . --quit-after 120 2>&1 | tee /tmp/dmo-smoke.log
+          if grep -E "SCRIPT ERROR|Invalid call|Invalid set index" /tmp/dmo-smoke.log; then exit 1; fi
       - name: Export debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore

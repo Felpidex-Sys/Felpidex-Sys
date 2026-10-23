@@ -13,8 +13,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Unpack source
         run: unzip -oq dmo-mobile-source.zip
-      - name: Import project and verify scripts
-        run: cd dmo-mobile && godot --headless --path . --editor --quit
+      - name: Setup Android build environment
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot"
+          cp -a /root/.local/share/godot/export_templates/. "$HOME/.local/share/godot/export_templates/"
+          cp -a /root/.config/godot/. "$HOME/.config/godot/"
+      - name: Import and verify scripts
+        shell: bash
+        run: |
+          set -o pipefail
+          cd dmo-mobile
+          godot --headless --path . --editor --quit 2>&1 | tee /tmp/godot-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/godot-import.log; then exit 1; fi
       - name: Export debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore

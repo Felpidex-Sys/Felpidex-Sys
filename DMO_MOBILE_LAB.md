@@ -1,6 +1,5 @@
-# Digital World Offline Mobile (v0.2 — laboratório)
-Projeto Godot 4.4.1 offline para Android, com controles touch, companheiro, inimigos, evolução, EXP, missão e salvamento JSON.
+# Digital World Offline Mobile v0.3
 
-Baixe [dmo-mobile-source.zip](./dmo-mobile-source.zip) (código-fonte completo, sem recursos proprietários). Abra Godot, ou use **Actions → DMO Mobile Android APK** para gerar um APK debug. A branch principal permanece intacta.
+Projeto Godot 4.4.1 original para Android, sem conteúdo proprietário, com controles por toque, parceiro, evolução, combate, XP, missões e salvamento JSON. O projeto completo está em [dmo-mobile-source.zip](./dmo-mobile-source.zip).
 
-**Modelos originais do DMO não estão incluídos.** Para uso autorizado privado, importe .glb em `assets/user_models`, fora do GitHub. O jogo **não é um port oficial** e ainda não foi testado em aparelho físico.
+Gerar o APK via **Actions → DMO Mobile Android APK**. A branch `main` permanece intacta. Para modelos originais autorizados, converta localmente para `.glb` e guarde em `assets/user_models`, sem publicar esses recursos no GitHub.

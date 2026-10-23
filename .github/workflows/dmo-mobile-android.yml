@@ -1,0 +1,33 @@
+name: DMO Mobile Android APK
+on:
+  push:
+    branches: [dmo-mobile-lab]
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack source
+        run: unzip -oq dmo-mobile-source.zip
+      - name: Import project and verify scripts
+        run: cd dmo-mobile && godot --headless --path . --editor --quit
+      - name: Export debug APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          cd dmo-mobile
+          mkdir -p build
+          godot --headless --path . --export-debug "Android" build/dmo-mobile-debug.apk
+          test -s build/dmo-mobile-debug.apk
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digital-world-offline-debug-apk
+          path: dmo-mobile/build/dmo-mobile-debug.apk
+          if-no-files-found: error
